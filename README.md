@@ -1,7 +1,6 @@
-## Benchmarks
-The code includes 16 comprehensive experiments (T1-T16) comparing H-EFT-VA against Hardware-Efficient Ansätze (HEA). Key results include:
-- **109x** lower energy convergence error.
-- **10.7x** higher ground-state fidelity.
-- **Statistical Significance**: Results show a p-value of $< 10^{-88}$ for $N=12$ qubits.
+# H-EFT-VA: An Effective-Field-Theory Variational Ansatz
 
-All data used to generate the figures in the paper are available in the `/data` folder.
+Official implementation of the **H-EFT Variational Ansatz (H-EFT-VA)**, a quantum circuit architecture designed to avoid Barren Plateaus (BPs) using principles from Effective Field Theory (EFT).
+
+## Abstract
+Variational Quantum Algorithms (VQAs) are critically threatened by the Barren Plateau phenomenon. In this work, we introduce H-EFT-VA, which enforces a hierarchical "UV-cutoff" on initialization to restrict state exploration and prevent the formation of unitary 2-designs. We provide rigorous proof of an inverse-polynomial lower bound on gradient variance while maintaining volume-law entanglement.
