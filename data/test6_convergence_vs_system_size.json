@@ -1,0 +1,44 @@
+{
+    "N2_L2": {
+        "heft_final_energy": -2.0206436231696605,
+        "hea_final_energy": -0.41154353295003426,
+        "n_qubits": 2,
+        "n_layers": 2
+    },
+    "N4_L2": {
+        "heft_final_energy": -3.9302840676741853,
+        "hea_final_energy": -0.22777190431132646,
+        "n_qubits": 4,
+        "n_layers": 2
+    },
+    "N6_L2": {
+        "heft_final_energy": -6.012750346173327,
+        "hea_final_energy": -2.905601783544604,
+        "n_qubits": 6,
+        "n_layers": 2
+    },
+    "N8_L2": {
+        "heft_final_energy": -7.968087912271834,
+        "hea_final_energy": -0.26356183012599466,
+        "n_qubits": 8,
+        "n_layers": 2
+    },
+    "N10_L2": {
+        "heft_final_energy": -10.036498399697876,
+        "hea_final_energy": 2.260007018402704,
+        "n_qubits": 10,
+        "n_layers": 2
+    },
+    "N12_L2": {
+        "heft_final_energy": -12.025594053039162,
+        "hea_final_energy": 2.2627224852037178,
+        "n_qubits": 12,
+        "n_layers": 2
+    },
+    "N14_L2": {
+        "heft_final_energy": -13.975753770429858,
+        "hea_final_energy": 0.4818516430386316,
+        "n_qubits": 14,
+        "n_layers": 2
+    }
+}
