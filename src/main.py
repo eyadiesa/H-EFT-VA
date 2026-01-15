@@ -15,7 +15,7 @@ from scipy import stats
 # Global settings for benchmark tests
 QUBIT_LIST = [2, 4, 6, 8, 10, 12, 14]
 LAYER_LIST = [2, 4, 6, 8, 10, 12, 14]
-SEEDS = range(50) # Increased seeds for better statistical significance (reviewer requirement)
+SEEDS = range(50) # Increased seeds for better statistical significance
 N_OPTIMIZER_STEPS = 100 # Increased steps for better convergence analysis
 OPTIMIZER_LR = 0.01 # Standard learning rate
 HAMILTONIAN_NAME = 'tfim' # Default Hamiltonian for most tests
@@ -220,7 +220,7 @@ def gradient_variance_at_init(qnode: Callable, init_fn: Callable, seeds: range =
 
 def finite_shot_gradient_estimator(qnode_shots: Callable, qnode_exact: Callable, init_fn: Callable, shots: int, seeds: range = range(15), n_reps: int = 25) -> Tuple[float, float, float]:
     """
-    Optimized for Tier 1 Journal standards: 
+    Optimized standards: 
     - Uses a reduced seed count for speed.
     - Compares shot-based gradients against an 'exact' baseline.
     - Uses parameter-shift for hardware-realistic noise.
@@ -300,7 +300,7 @@ def entanglement_entropy(state_vector, subsystem=1):
 
 def expressibility_metric(ansatz_func: Callable, n_qubits: int, n_layers: int, n_samples: int = 500) -> float:
     """
-    Tier 1 Standard Expressibility Proxy (Mean Purity).
+    Expressibility Proxy (Mean Purity).
     
     This function measures the 'coverage' of the Hilbert space. 
     A lower mean purity indicates higher expressibility, approaching 
@@ -772,7 +772,7 @@ def test10_finite_shot_gv_estimator():
     results = {}
     start_time = time.time()
     
-    # Tier 1 optimization: L=4 is sufficient to show shot-noise scaling 
+    # optimization: L=4 is sufficient to show shot-noise scaling 
     # and significantly reduces runtime vs L=8.
     N_TEST, L_TEST = 8, 4 
     SHOTS_LIST = [1000, 5000, 10000]
@@ -1066,7 +1066,7 @@ def test15_statistical_significance():
 
 def test16_ground_state_fidelity():
     """
-    [T16] Ground State Fidelity Analysis (Tier 1 Optimized).
+    [T16] Ground State Fidelity Analysis (Optimized).
     Compares H-EFT-VA vs HEA in reaching the true ground state.
     Uses multi-seed averaging to prove optimization robustness.
     """
@@ -1082,7 +1082,7 @@ def test16_ground_state_fidelity():
     H = get_hamiltonian(HAMILTONIAN_NAME, N_TEST)
     
     # Obtain the "Gold Standard" ground state via Exact Diagonalization (ED)
-    # This is the target your VQE is trying to reach.
+    # This is the target the VQE is trying to reach.
     gs_vector = get_ground_state_vector(H)
     
     heft_f_means, heft_f_stds = [], []
@@ -1604,7 +1604,7 @@ def plot_14_expressibility_proxy():
     hea_purity = results['hea_purity']
     n_qubits = results['n_qubits']
 
-    # Tier 1 Requirement: Calculate Haar-random purity baseline
+    # Requirement: Calculate Haar-random purity baseline
     haar_purity = 2 / (2**n_qubits + 1)
 
     fig, ax = plt.subplots(figsize=(8, 6))
@@ -1691,7 +1691,7 @@ def plot_16_ground_state_fidelity():
         print("Skipping plot 16: Results file not found.")
         return
 
-    # Use the new Tier 1 keys
+    # Use the new keys
     layers = results['layer_list']
     heft_mean = results['heft_fid_mean']
     heft_std = results['heft_fid_std']
