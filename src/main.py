@@ -31,69 +31,58 @@ plt.rcParams["figure.dpi"] = 600
 sns.set(style="whitegrid", context="paper", font_scale=1.2)
 
 
-# --- Ansatz Definitions ---
+# --- Updated Ansatz Definitions (v2 Adaptive) ---
 
-def heft_va_layer(params: np.ndarray, wires: List[int], p_noise: float = 0.0):
+def heft_va_layer(params: np.ndarray, wires: List[int], p_noise: float = 0.0, mode: str = 'spin'):
     """
-    Implements a single layer of the H-EFT-VA ansatz.
+    Adaptive H-EFT-VA Layer.
+    'spin' mode: CNOT-Rz-CNOT for TFIM research.
+    'chemistry' mode: IsingXY for orbital hopping and exactness.
     """
     n = len(wires)
     
-    # Single-qubit rotations (RY)
+    # 1. Rotations: RY for all; add RZ for chemistry phase-expressivity
     for i in range(n):
         qml.RY(params[i], wires=wires[i])
-        if p_noise > 0:
-            qml.DepolarizingChannel(p_noise / 10, wires=wires[i])
+        if mode == 'chemistry':
+            # This second set of rotations is required for chemical exactness
+            qml.RZ(params[n + i], wires=wires[i])
+            if p_noise > 0:
+                qml.DepolarizingChannel(p_noise / 10, wires=wires[i])
             
-    offset = n
+    offset = n if mode == 'spin' else 2 * n
     
-    # Two-qubit entangling gates (CNOT-Rz-CNOT)
+    # 2. Adaptive Entangling Layer
     for i in range(n - 1):
         w1, w2 = wires[i], wires[i+1]
-        qml.CNOT(wires=[w1, w2])
-        qml.RZ(params[offset + i], wires=w2)
-        qml.CNOT(wires=[w1, w2])
+        if mode == 'spin':
+            # Original Rzz interaction
+            qml.CNOT(wires=[w1, w2])
+            qml.RZ(params[offset + i], wires=w2)
+            qml.CNOT(wires=[w1, w2])
+        else:
+            # IsingXY for particle-conserving molecular correlation
+            qml.IsingXY(params[offset + i], wires=[w1, w2])
         
         if p_noise > 0:
             qml.DepolarizingChannel(p_noise, wires=w1)
             qml.DepolarizingChannel(p_noise, wires=w2)
 
-def heft_va_ansatz(params: np.ndarray, n_qubits: int, n_layers: int, p_noise: float = 0.0):
+def heft_va_ansatz(params: np.ndarray, n_qubits: int, n_layers: int, p_noise: float = 0.0, mode: str = 'spin'):
     """
-    Constructs the full H-EFT-VA circuit.
+    Constructs the full H-EFT-VA circuit with dynamic parameter management.
     """
-    params_per_layer = n_qubits + (n_qubits - 1)
+    # Chemistry requires more parameters due to the RY+RZ rotation set
+    params_per_layer = (n_qubits + (n_qubits - 1)) if mode == 'spin' else (2 * n_qubits + (n_qubits - 1))
+    
     try:
         params = params.reshape((n_layers, params_per_layer))
     except ValueError:
-        raise ValueError(f"Parameter shape mismatch. Expected {n_layers * params_per_layer} parameters, got {params.size}.")
+        raise ValueError(f"Shape mismatch: {mode} mode expects {n_layers * params_per_layer} params.")
         
     wires = list(range(n_qubits))
     for l in range(n_layers):
-        heft_va_layer(params[l], wires, p_noise)
-
-def hea_ansatz(params, n_qubits, n_layers, p_noise=0.0):
-    """
-    Hardware-Efficient Ansatz (HEA) for comparison.
-    """
-    params_per_layer = n_qubits + (n_qubits - 1)
-    try:
-        params = params.reshape((n_layers, params_per_layer))
-    except ValueError:
-        # Handle case where HEA has a different number of parameters (e.g., no Rz)
-        params = params.reshape((n_layers, n_qubits))
-        
-    wires = list(range(n_qubits))
-    for l in range(n_layers):
-        for i in range(n_qubits):
-            qml.RY(params[l,i], wires=i)
-            if p_noise>0:
-                qml.DepolarizingChannel(p_noise/10, wires=i)
-        for i in range(n_qubits-1):
-            qml.CNOT(wires=[i, i+1])
-            if p_noise>0:
-                qml.DepolarizingChannel(p_noise, wires=i)
-
+        heft_va_layer(params[l], wires, p_noise, mode=mode)
 def qaoa_ansatz(params, n_qubits, n_layers, p_noise=0.0):
     """
     Quantum Approximate Optimization Algorithm (QAOA) ansatz.
@@ -172,18 +161,25 @@ def get_hamiltonian(name: str, n_qubits: int) -> qml.Hamiltonian:
 
 KAPPA = 0.1 # EFT coupling-scale bound
 
-def heft_va_init_fn(n_qubits: int, n_layers: int, kappa: float = KAPPA) -> np.ndarray:
+def heft_va_init_fn(n_qubits: int, n_layers: int, kappa: float = KAPPA, mode: str = 'spin') -> np.ndarray:
     """
-    Generates initial parameters based on the H-EFT-VA scaling:
-    sigma = kappa / (L * N)
+    Adaptive H-EFT-VA Initialization.
+    Default mode='spin' preserves all existing T1-T16 benchmarks.
     """
-    params_per_layer = n_qubits + (n_qubits - 1)
+    # 1. Determine parameter count based on mode
+    if mode == 'spin':
+        params_per_layer = n_qubits + (n_qubits - 1)
+        mu = 0 # Original mean for spin research
+    else:
+        params_per_layer = 2 * n_qubits + (n_qubits - 1)
+        mu = 0.1 # Symmetry-breaking seed for chemistry breakthroughs
+        
     n_params = n_layers * params_per_layer
     
-    # Dynamic H-EFT-VA scaling
+    # 2. Apply your core EFT-scaling rule
     scale = kappa / (n_layers * n_qubits)
     
-    return np.random.normal(0, scale, size=(n_params,))
+    return np.random.normal(mu, scale, size=(n_params,))
 
 def hea_init_fn(n_qubits: int, n_layers: int) -> np.ndarray:
     """
