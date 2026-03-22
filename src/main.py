@@ -114,6 +114,29 @@ def qaoa_ansatz(params, n_qubits, n_layers, p_noise=0.0):
             for i in range(n_qubits):
                 qml.DepolarizingChannel(p_noise, wires=i)
 
+
+def hea_ansatz(params, n_qubits, n_layers, p_noise=0.0):
+    """
+    Standard Hardware-Efficient Ansatz (HEA) for comparison.
+    Uses RY rotations followed by a chain of CNOT gates.
+    """
+    params_per_layer = n_qubits + (n_qubits - 1)
+    # Ensure parameter shape matches the expectations of the benchmarking loop
+    params = params.reshape((n_layers, params_per_layer))
+        
+    wires = list(range(n_qubits))
+    for l in range(n_layers):
+        # Rotation layer
+        for i in range(n_qubits):
+            qml.RY(params[l, i], wires=wires[i])
+            if p_noise > 0:
+                qml.DepolarizingChannel(p_noise / 10, wires=wires[i])
+        
+        # Entanglement layer (Standard 1D Chain)
+        for i in range(n_qubits - 1):
+            qml.CNOT(wires=[wires[i], wires[i+1]])
+            if p_noise > 0:
+                qml.DepolarizingChannel(p_noise, wires=wires[i])
 # --- Hamiltonian Definitions ---
 
 def ising_hamiltonian(n_qubits: int, J: float = 1.0, h: float = 1.0, periodic: bool = True) -> qml.Hamiltonian:
@@ -1725,7 +1748,7 @@ def run_all_tests():
     print("  Starting H-EFT-VA Complete Benchmark Suite")
     print("=====================================================")
     
-    Run all tests
+    #Run all tests
     test1_gv_scaling_analytic()
     test2_landscape_flatness_scan()
     test3_init_scale_dependence()            
